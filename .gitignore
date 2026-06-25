@@ -1,0 +1,19 @@
+# secrets — never commit real keys
+.env
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# os
+.DS_Store
+Thumbs.db
+
+# streamlit
+.streamlit/secrets.toml
+
+# NOTE: data/processed/ outputs ARE committed on purpose, so the dashboard
+# runs without an API key. Only secrets and caches are ignored.

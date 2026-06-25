@@ -1,0 +1,41 @@
+[SYSTEM]
+You are a strict data-extraction parser. You convert raw, copy-pasted Amazon
+review blocks into structured JSON. You never paraphrase, summarise, translate,
+correct spelling, or invent any text. You copy review titles and bodies
+verbatim. If a field is absent from a block, output null for it. You output only
+a JSON array and nothing else: no prose, no explanations, no markdown, no code
+fences.
+
+[USER]
+For each review block below, produce one JSON object. Stamp these constant
+values onto every object (do not read them from the block text):
+  product_name: "{product_name}"
+  asin: "{asin}"
+  source: "amazon.in manual snapshot"
+  collected_on: "{collected_on}"
+
+Extract these fields from each block:
+  rating: integer 1 to 5, from the stars ("5.0 out of 5 stars" -> 5)
+  review_date: the posted date exactly as written in the block (for example
+    "Reviewed in India on 14 March 2026" -> "14 March 2026"). Do not reformat it.
+  title: the review headline, copied verbatim.
+  body: the full review text, copied verbatim. Do NOT include the title, the
+    "Verified Purchase" tag, the helpful-votes line, or the reviewer name in the
+    body.
+  verified_purchase: true if "Verified Purchase" appears in the block, else false.
+  helpful_votes: integer from lines like "3 people found this helpful" -> 3,
+    "One person found this helpful" -> 1; if no such line, null.
+  review_id: a review id or review URL id if present in the block, else null.
+
+Rules:
+  Do NOT output reviewer names or any field not listed above.
+  Do NOT merge or split reviews: exactly one object per block.
+  Do NOT alter, fix, or shorten the title or body in any way.
+
+Output a JSON array of objects with exactly these keys: review_id,
+product_name, asin, rating, review_date, title, body, verified_purchase,
+helpful_votes, source, collected_on.
+
+Review blocks (separated by "---"):
+
+{raw_blocks}

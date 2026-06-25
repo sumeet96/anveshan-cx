@@ -1,0 +1,93 @@
+{
+  "snapshot_date": "2026-06-24",
+  "product_scope": "Anveshan A2 Cow Ghee (5 size variants)",
+  "date_range": "2021-07-21 to 2026-06-22",
+  "total_reviews": 297,
+  "current_month": "2026-05",
+  "previous_month": "2026-04",
+  "excludes_partial_month": "2026-06",
+  "overall": {
+    "avg_rating": 2.76,
+    "sentiment_counts": {
+      "negative": 205,
+      "positive": 68,
+      "neutral": 24
+    },
+    "theme_counts": {
+      "taste_quality": 194,
+      "authenticity_traceability": 79,
+      "price_value": 70,
+      "packaging_leakage": 58,
+      "other": 52,
+      "delivery_logistics": 7,
+      "customer_service": 5
+    }
+  },
+  "current_month_stats": {
+    "month": "2026-05",
+    "review_count": 35,
+    "avg_rating": 3.03,
+    "sentiment_counts": {
+      "negative": 20,
+      "positive": 15
+    },
+    "theme_counts": {
+      "taste_quality": 24,
+      "authenticity_traceability": 12,
+      "packaging_leakage": 11,
+      "other": 3,
+      "price_value": 2,
+      "delivery_logistics": 1
+    }
+  },
+  "previous_month_stats": {
+    "month": "2026-04",
+    "review_count": 24,
+    "avg_rating": 2.83,
+    "sentiment_counts": {
+      "negative": 14,
+      "positive": 10
+    },
+    "theme_counts": {
+      "taste_quality": 21,
+      "authenticity_traceability": 6,
+      "price_value": 4,
+      "packaging_leakage": 2,
+      "other": 2,
+      "customer_service": 1,
+      "delivery_logistics": 1
+    }
+  },
+  "top_rising_negative_theme": {
+    "theme": "packaging_leakage",
+    "delta": 4,
+    "current": 6,
+    "previous": 2
+  },
+  "alerts": [
+    {
+      "theme": "taste_quality",
+      "month": "2026-05",
+      "current": 13,
+      "baseline": 7.33,
+      "delta": 5.67,
+      "baseline_months": [
+        "2026-02",
+        "2026-03",
+        "2026-04"
+      ]
+    },
+    {
+      "theme": "packaging_leakage",
+      "month": "2026-05",
+      "current": 6,
+      "baseline": 2.67,
+      "delta": 3.33,
+      "baseline_months": [
+        "2026-02",
+        "2026-03",
+        "2026-04"
+      ]
+    }
+  ]
+}

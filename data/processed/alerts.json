@@ -1,0 +1,26 @@
+[
+  {
+    "theme": "taste_quality",
+    "month": "2026-05",
+    "current": 13,
+    "baseline": 7.33,
+    "delta": 5.67,
+    "baseline_months": [
+      "2026-02",
+      "2026-03",
+      "2026-04"
+    ]
+  },
+  {
+    "theme": "packaging_leakage",
+    "month": "2026-05",
+    "current": 6,
+    "baseline": 2.67,
+    "delta": 3.33,
+    "baseline_months": [
+      "2026-02",
+      "2026-03",
+      "2026-04"
+    ]
+  }
+]
