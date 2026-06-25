@@ -1,0 +1,57 @@
+name: Founder brief
+
+# Closes the automation loop: trigger -> run pipeline -> deliver the brief.
+#   * push to data/raw/** = a new dated snapshot was added -> full re-extract
+#   * schedule / manual    = heartbeat that re-narrates + delivers the brief
+# Secrets (repo Settings -> Secrets and variables -> Actions):
+#   OPENAI_API_KEY    (optional) regenerate the brief; without it, stats-only refresh
+#   SLACK_WEBHOOK_URL (optional) post the brief; without it, it prints to the run log
+on:
+  schedule:
+    - cron: "0 3 * * 1"          # Mondays 03:00 UTC (~08:30 IST)
+  workflow_dispatch: {}
+  push:
+    paths:
+      - "data/raw/**"
+
+permissions:
+  contents: write
+
+jobs:
+  brief:
+    runs-on: ubuntu-latest
+    env:
+      HAS_OPENAI: ${{ secrets.OPENAI_API_KEY != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+
+      - name: Generate brief (with API key)
+        if: env.HAS_OPENAI == 'true'
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            python -m src.pipeline          # new snapshot -> full ingest..brief
+          else
+            python -m src.analyze && python -m src.brief   # heartbeat -> recompute + narrate
+          fi
+
+      - name: Refresh stats only (no API key)
+        if: env.HAS_OPENAI != 'true'
+        run: python -m src.analyze
+
+      - name: Deliver brief
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: python -m src.deliver
+
+      - name: Commit refreshed artifacts
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/processed
+          git diff --cached --quiet || (git commit -m "chore: refresh brief & stats [skip ci]" && git push)

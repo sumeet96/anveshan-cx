@@ -12,6 +12,6 @@
 ## What to watch
 - Rising negative sentiment in packaging leakage.
 - Increased alerts for taste quality in May.
-- High number of negative reviews at 205.
+- Overall negative reviews remain high at 205.
 
 _Comparison: 2026-04 → 2026-05 (last complete month; partial 2026-06 excluded from deltas). 297 reviews over 2021-07-21 to 2026-06-22._

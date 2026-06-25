@@ -105,6 +105,7 @@ def generate_brief(model=None):
 
     config.DATA_PROCESSED.mkdir(parents=True, exist_ok=True)
     config.BRIEF_MD.write_text(render_md(brief, stats, bad), encoding="utf-8")
+    config.BRIEF_JSON.write_text(json.dumps(brief, ensure_ascii=False, indent=2), encoding="utf-8")
     return brief, bad
 
 

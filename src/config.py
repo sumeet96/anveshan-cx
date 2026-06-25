@@ -21,6 +21,7 @@ ENRICH_CACHE = DATA_PROCESSED / "enrich_cache.json"
 TRENDS_CSV = DATA_PROCESSED / "trends.csv"
 ALERTS_JSON = DATA_PROCESSED / "alerts.json"
 BRIEF_MD = DATA_PROCESSED / "brief.md"
+BRIEF_JSON = DATA_PROCESSED / "brief.json"
 STATS_JSON = DATA_PROCESSED / "stats.json"
 PARSE_FAILURES_LOG = DATA_PROCESSED / "parse_failures.log"
 

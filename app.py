@@ -93,26 +93,45 @@ if f.empty:
     st.info("No reviews match the current filters.")
     st.stop()
 
-dated = f.dropna(subset=["date"])
-st.markdown("**Average rating by month**")
-st.line_chart(dated.groupby("month")["rating"].mean().round(2))
+# 1) Negative-rate by SKU — where the problem is, not raw volume
+st.markdown("**Negative-review rate by SKU** — share of each variant's reviews that read negative")
+by_sku = f.groupby("size").agg(
+    reviews=("review_id", "count"),
+    negatives=("sentiment", lambda s: int((s == "negative").sum())),
+)
+by_sku["neg_rate"] = (by_sku["negatives"] / by_sku["reviews"]).round(3)
+by_sku = by_sku.sort_values("neg_rate", ascending=False)
+left, right = st.columns([2, 1])
+left.bar_chart(by_sku["neg_rate"])
+right.dataframe(by_sku, width="stretch")
+st.caption("Ranks variants by problem severity rather than sales mix — mind small-n variants (2.5L/5L).")
 
-colA, colB = st.columns(2)
-with colA:
-    st.markdown("**Review volume by month**")
-    st.bar_chart(dated.groupby("month").size().rename("reviews"))
-with colB:
-    st.markdown("**Sentiment over time**")
-    st.bar_chart(dated.pivot_table(index="month", columns="sentiment",
-                                   values="review_id", aggfunc="count").fillna(0))
+# 2) Normalized complaint-theme mix over time — what's shifting (recent 12 months)
+st.markdown("**Complaint-theme mix over time** — each theme's *share* of negative-review themes per month")
+neg_ex = f[f["sentiment"] == "negative"].dropna(subset=["date"]).explode("themes_list")
+neg_ex = neg_ex[neg_ex["themes_list"].notna()].copy()
+if not neg_ex.empty:
+    neg_ex["month"] = neg_ex["date"].dt.to_period("M").astype(str)
+    recent = sorted(neg_ex["month"].unique())[-12:]
+    counts = (neg_ex[neg_ex["month"].isin(recent)]
+              .pivot_table(index="month", columns="themes_list", values="review_id", aggfunc="count")
+              .fillna(0))
+    st.area_chart(counts.div(counts.sum(axis=1).replace(0, 1), axis=0))
+    st.caption("Normalized to share, so it reflects *what* people complain about — not how many reviews arrived.")
+else:
+    st.info("No negative-theme data for the current filter.")
 
-colC, colD = st.columns(2)
-with colC:
-    st.markdown("**Theme breakdown**")
-    st.bar_chart(f.explode("themes_list")["themes_list"].dropna().value_counts())
-with colD:
-    st.markdown("**Reviews by size variant**")
-    st.bar_chart(f["size"].value_counts())
+# 3) Rolling 30-day negative-review count — the anomaly shape a live stream tracks
+st.markdown("**Negative reviews — 30-day rolling count (recent window)**")
+nd = f[f["sentiment"] == "negative"].dropna(subset=["date"]).set_index("date").sort_index()
+if not nd.empty:
+    daily = nd["review_id"].resample("D").count()
+    rolling = daily.rolling(30, min_periods=1).sum()
+    rolling = rolling[rolling.index >= rolling.index.max() - pd.Timedelta(days=180)]
+    st.line_chart(rolling.rename("negatives (30-day rolling)"))
+    st.caption("Rolling window, not calendar bars — the alerts panel above fires when this regresses vs baseline.")
+else:
+    st.info("No negative reviews for the current filter.")
 
 st.markdown("**Sample reviews** (evidence is a verbatim phrase from the body)")
 st.dataframe(

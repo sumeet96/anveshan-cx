@@ -12,9 +12,12 @@ theme + sentiment with an LLM, computes complaint trends and spike alerts with
 pandas, and auto-generates a short "what changed + what to watch" founder brief.
 
 Three pillars:
-1. **Automate** — one command runs `ingest → enrich → analyze → brief`.
-2. **Illuminate** — a Streamlit dashboard a founder can open and trust.
-3. **Anticipate** — month-over-month spike detection on negative themes.
+1. **Automate** — one command (or a scheduled GitHub Action) runs
+   `ingest → enrich → analyze → brief → deliver`.
+2. **Illuminate** — a Streamlit dashboard led by an alert feed, with negative-rate
+   by SKU, normalized complaint-theme share, and rolling-window views.
+3. **Anticipate** — month-over-month spike detection on negative themes, delivered
+   to Slack.
 
 ## The data (provenance)
 - Source: public **Amazon.in** reviews for **Anveshan A2 Cow Ghee**, across **5 size
@@ -41,10 +44,11 @@ data/processed/reviews_enriched.csv
 stats.json · trends.csv · alerts.json
    │  brief.py     LLM narrates stats.json; a number-guard flags any figure in the
    ▼               brief that is not present in the stats
-data/processed/brief.md
+data/processed/brief.md ──▶ deliver.py ──▶ Slack incoming webhook (or dry-run to log)
    │  app.py       Streamlit dashboard — reads processed artifacts only
    ▼
-(dashboard: KPIs · alerts · brief · trend/theme/sentiment charts · per-SKU filter)
+(dashboard: KPIs · alert feed (centerpiece) · brief · negative-rate by SKU ·
+ normalized theme-share · 30-day rolling negatives · per-SKU & date filters)
 ```
 The three prompts live in `prompts/*.txt` as `[SYSTEM]` / `[USER]` blocks
 (`parse_prompt.txt`, `enrich_prompt.txt`, `brief_prompt.txt`) and are loaded by
@@ -91,11 +95,23 @@ approved marketplace API / data source and emits the same `reviews.csv` columns 
 feeds review blocks to `ingest.parse_reviews`), then schedule it. No downstream code
 changes. This build intentionally ships only the snapshot source.
 
-## Automating the brief (n8n / Make)
-`src.brief.generate_brief()` is a callable that regenerates `brief.md` from the
-latest stats. To automate, run the pipeline on a schedule (cron / GitHub Action) and
-POST `brief.md` to an n8n/Make webhook → Slack/email. The hook point is documented;
-it is not wired in this build.
+## Automation: scheduled brief delivery
+`.github/workflows/brief.yml` closes the loop — trigger → run pipeline → deliver:
+- **Triggers:** weekly `schedule` (heartbeat), `workflow_dispatch` (manual run), and
+  `push` to `data/raw/**` (a new dated snapshot → full re-extract).
+- **Delivery:** `python -m src.deliver` (`src/deliver.py`) posts the brief to a
+  **Slack** incoming webhook; with no webhook it prints to the run log (dry-run).
+  Email is a one-function swap.
+- **Secrets** (repo → Settings → Secrets and variables → Actions): `OPENAI_API_KEY`
+  (regenerate the brief; without it the job does a stats-only refresh) and
+  `SLACK_WEBHOOK_URL` (post to Slack; without it, dry-run). The deployed dashboard
+  needs neither.
+- The job commits refreshed `data/processed/` back, so the deployed dashboard stays
+  in sync.
+
+Honest scope: under the no-scrape rule, the *schedule* re-narrates a fixed snapshot;
+the **push-on-new-snapshot** trigger is the meaningful refresh until the ingest source
+is swapped to a live connector (the seam is `ingest.parse_reviews`).
 
 ## This snapshot at a glance
 - 297 reviews · overall avg rating **2.76** · sentiment **204 neg / 67 pos / 26 neu**.
@@ -110,8 +126,9 @@ data/raw/            dated snapshot (input)
 data/processed/      reviews.csv, reviews_enriched.csv, enrich_cache.json,
                      stats.json, trends.csv, alerts.json, brief.md, parse_failures.log
 prompts/             parse_prompt.txt, enrich_prompt.txt, brief_prompt.txt  ([SYSTEM]/[USER])
-src/                 config, promptlib, llm, ingest, enrich, analyze, brief, pipeline
+src/                 config, promptlib, llm, ingest, enrich, analyze, brief, deliver, pipeline
 app.py               Streamlit dashboard
+.github/workflows/   brief.yml (scheduled pipeline run + Slack delivery)
 ```
 
 ## Limitations
