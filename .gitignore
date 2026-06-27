@@ -1,6 +1,9 @@
 # secrets — never commit real keys
 .env
 
+# personal application materials — keep OUT of the public repo
+anveshan_context.md
+
 # python
 __pycache__/
 *.py[cod]
